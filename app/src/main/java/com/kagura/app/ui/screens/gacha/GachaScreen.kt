@@ -2,20 +2,19 @@ package com.kagura.app.ui.screens.gacha
 
 import android.content.Intent
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Check
+import androidx.compose.material.icons.outlined.Favorite
 import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material.icons.outlined.Star
@@ -26,9 +25,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -40,23 +41,18 @@ import com.kagura.app.domain.usecase.GachaSource
 import com.kagura.app.ui.components.CoverImage
 import com.kagura.app.ui.components.GlassCard
 import com.kagura.app.ui.components.Pill
+import com.kagura.app.ui.components.label
 import com.kagura.app.ui.components.rareBorder
 import com.kagura.app.ui.components.tiltOnTouch
 import com.kagura.app.ui.theme.*
 import java.util.Locale
 
-private data class MediaTypeFilter(val type: MediaType?, val label: String)
+private data class ClimateOption(val name: String, val description: String, val icon: ImageVector)
 
-private val mediaTypeFilters = listOf(
-    MediaTypeFilter(null, "Todos"),
-    MediaTypeFilter(MediaType.ANIME, "Animes"),
-    MediaTypeFilter(MediaType.MANGA, "Mangás"),
-    MediaTypeFilter(MediaType.MOVIE, "Filmes")
-)
-
-private val genresList = listOf(
-    "Ação", "Comédia", "Drama", "Romance", "Terror",
-    "Fantasia", "Ficção Científica", "Aventura", "Mistério", "Slice of Life"
+private val climates = listOf(
+    ClimateOption("Tranquilo", "Leve, divertido e relaxante", Icons.Outlined.Favorite),
+    ClimateOption("Intenso", "Ação épica e adrenalina pura", Icons.Outlined.Star),
+    ClimateOption("Super intenso", "Suspense profundo e reviravoltas", Icons.Outlined.Info)
 )
 
 @Composable
@@ -65,6 +61,8 @@ fun GachaScreen(vm: GachaViewModel, onOpen: (Int) -> Unit) {
     val result = s.result
     val context = LocalContext.current
     val haptics = LocalHapticFeedback.current
+
+    val isAnime = s.mediaType == MediaType.ANIME
 
     Column(
         Modifier
@@ -77,47 +75,88 @@ fun GachaScreen(vm: GachaViewModel, onOpen: (Int) -> Unit) {
     ) {
         Column(horizontalAlignment = Alignment.Start, modifier = Modifier.fillMaxWidth()) {
             Text(
-                text = "Sorteador de Mídias",
+                text = "Sorteador",
                 style = MaterialTheme.typography.headlineLarge,
                 color = KaguraText
             )
             Text(
-                text = "Sorteio inteligente com catálogo expandido e perfil do usuário",
+                text = "Encontre a recomendação perfeita baseada no seu clima",
                 style = MaterialTheme.typography.bodyMedium,
                 color = KaguraMuted
             )
         }
 
-        // Profiling Summary Card
+        // Top Selector: Anime | Mangá com identidade visual própria e transição animada
         GlassCard(
             modifier = Modifier.fillMaxWidth(),
-            backgroundColor = KaguraGlassViolet
+            backgroundColor = KaguraGlassSurface
         ) {
             Row(
-                modifier = Modifier.padding(12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(6.dp),
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-                Icon(
-                    imageVector = Icons.Outlined.Person,
-                    contentDescription = null,
-                    tint = KaguraViolet,
-                    modifier = Modifier.size(24.dp)
+                // Anime button (Pink/Violet identity)
+                val animeBg by animateColorAsState(
+                    if (isAnime) KaguraGlassViolet else KaguraGlassSurface,
+                    tween(300),
+                    label = "anime_bg"
                 )
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = "Perfil de Recomendação Ativo",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = KaguraText
-                    )
-                    val favText = if (s.userFavGenres.isNotEmpty()) {
-                        "Gêneros em alta no seu perfil: " + s.userFavGenres.take(3).joinToString(", ")
-                    } else "Perfil adaptativo pronto para personalizar suas escolhas"
-                    Text(
-                        text = favText,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = KaguraMuted
-                    )
+                val animeBorder by animateColorAsState(
+                    if (isAnime) KaguraViolet else KaguraGlassBorder,
+                    tween(300),
+                    label = "anime_border"
+                )
+                Surface(
+                    onClick = { vm.setMediaType(MediaType.ANIME) },
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(14.dp),
+                    color = animeBg,
+                    border = BorderStroke(width = if (isAnime) 1.5.dp else 1.dp, color = animeBorder)
+                ) {
+                    Box(
+                        modifier = Modifier.padding(vertical = 12.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "Anime",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = if (isAnime) KaguraText else KaguraMuted,
+                            fontWeight = if (isAnime) FontWeight.Bold else FontWeight.Normal
+                        )
+                    }
+                }
+
+                // Manga button (Cyan/Gold identity)
+                val mangaBg by animateColorAsState(
+                    if (!isAnime) KaguraGlassCyan else KaguraGlassSurface,
+                    tween(300),
+                    label = "manga_bg"
+                )
+                val mangaBorder by animateColorAsState(
+                    if (!isAnime) KaguraCyan else KaguraGlassBorder,
+                    tween(300),
+                    label = "manga_border"
+                )
+                Surface(
+                    onClick = { vm.setMediaType(MediaType.MANGA) },
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(14.dp),
+                    color = mangaBg,
+                    border = BorderStroke(width = if (!isAnime) 1.5.dp else 1.dp, color = mangaBorder)
+                ) {
+                    Box(
+                        modifier = Modifier.padding(vertical = 12.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "Mangá",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = if (!isAnime) KaguraText else KaguraMuted,
+                            fontWeight = if (!isAnime) FontWeight.Bold else FontWeight.Normal
+                        )
+                    }
                 }
             }
         }
@@ -181,23 +220,60 @@ fun GachaScreen(vm: GachaViewModel, onOpen: (Int) -> Unit) {
             }
         }
 
-        // Seleção de Tipo de Mídia (Chips Monocromáticos)
+        // Climate Selection Cards (Tranquilo, Intenso, Super intenso)
         Column(horizontalAlignment = Alignment.Start, modifier = Modifier.fillMaxWidth()) {
             Text(
-                text = "Tipo de Mídia",
+                text = "Escolha o Clima",
                 style = MaterialTheme.typography.labelSmall,
                 color = KaguraMuted,
                 modifier = Modifier.padding(bottom = 6.dp)
             )
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            Column(
+                verticalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                mediaTypeFilters.forEach { item ->
-                    val selected = s.mediaType == item.type
+                val allSelected = s.climate == null
+                Surface(
+                    onClick = { vm.setClimate(null) },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(14.dp),
+                    color = if (allSelected) KaguraGlassViolet else KaguraGlassSurface,
+                    border = BorderStroke(
+                        width = if (allSelected) 1.5.dp else 1.dp,
+                        color = if (allSelected) KaguraViolet else KaguraGlassBorder
+                    )
+                ) {
+                    Row(
+                        modifier = Modifier.padding(14.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Star,
+                            contentDescription = null,
+                            tint = if (allSelected) KaguraPink else KaguraMuted,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "Qualquer Clima",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = if (allSelected) KaguraText else KaguraMuted
+                            )
+                            Text(
+                                text = "Sorteio livre entre todos os títulos",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = KaguraMuted
+                            )
+                        }
+                    }
+                }
+
+                climates.forEach { climate ->
+                    val selected = s.climate == climate.name
                     Surface(
-                        onClick = { vm.setMediaType(item.type) },
-                        modifier = Modifier.weight(1f),
+                        onClick = { vm.setClimate(if (selected) null else climate.name) },
+                        modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(14.dp),
                         color = if (selected) KaguraGlassViolet else KaguraGlassSurface,
                         border = BorderStroke(
@@ -205,69 +281,30 @@ fun GachaScreen(vm: GachaViewModel, onOpen: (Int) -> Unit) {
                             color = if (selected) KaguraViolet else KaguraGlassBorder
                         )
                     ) {
-                        Box(
-                            modifier = Modifier.padding(vertical = 8.dp),
-                            contentAlignment = Alignment.Center
+                        Row(
+                            modifier = Modifier.padding(14.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            Text(
-                                text = item.label,
-                                style = MaterialTheme.typography.titleMedium,
-                                color = if (selected) KaguraText else KaguraMuted
+                            Icon(
+                                imageVector = climate.icon,
+                                contentDescription = null,
+                                tint = if (selected) KaguraPink else KaguraMuted,
+                                modifier = Modifier.size(24.dp)
                             )
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = climate.name,
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = if (selected) KaguraText else KaguraMuted
+                                )
+                                Text(
+                                    text = climate.description,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = KaguraMuted
+                                )
+                            }
                         }
-                    }
-                }
-            }
-        }
-
-        // Seleção de Gênero (Chips Deslizantes)
-        Column(horizontalAlignment = Alignment.Start, modifier = Modifier.fillMaxWidth()) {
-            Text(
-                text = "Gênero de Preferência",
-                style = MaterialTheme.typography.labelSmall,
-                color = KaguraMuted,
-                modifier = Modifier.padding(bottom = 6.dp)
-            )
-            LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                contentPadding = PaddingValues(vertical = 2.dp)
-            ) {
-                item {
-                    val selected = s.genre == null
-                    Surface(
-                        onClick = { vm.setGenre(null) },
-                        shape = RoundedCornerShape(50),
-                        color = if (selected) KaguraGlassViolet else KaguraGlassSurface,
-                        border = BorderStroke(
-                            width = if (selected) 1.5.dp else 1.dp,
-                            color = if (selected) KaguraViolet else KaguraGlassBorder
-                        )
-                    ) {
-                        Text(
-                            text = "Todos os gêneros",
-                            style = MaterialTheme.typography.titleMedium,
-                            color = if (selected) KaguraText else KaguraMuted,
-                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp)
-                        )
-                    }
-                }
-                items(genresList) { g ->
-                    val selected = s.genre == g
-                    Surface(
-                        onClick = { vm.setGenre(if (selected) null else g) },
-                        shape = RoundedCornerShape(50),
-                        color = if (selected) KaguraGlassViolet else KaguraGlassSurface,
-                        border = BorderStroke(
-                            width = if (selected) 1.5.dp else 1.dp,
-                            color = if (selected) KaguraViolet else KaguraGlassBorder
-                        )
-                    ) {
-                        Text(
-                            text = g,
-                            style = MaterialTheme.typography.titleMedium,
-                            color = if (selected) KaguraText else KaguraMuted,
-                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp)
-                        )
                     }
                 }
             }
@@ -299,7 +336,7 @@ fun GachaScreen(vm: GachaViewModel, onOpen: (Int) -> Unit) {
                         color = KaguraText,
                         strokeWidth = 2.dp
                     )
-                    Text("Analisando Perfil...", style = MaterialTheme.typography.titleLarge)
+                    Text("Sorteando...", style = MaterialTheme.typography.titleLarge)
                 } else {
                     Icon(
                         imageVector = Icons.Outlined.Refresh,
@@ -331,7 +368,7 @@ fun GachaScreen(vm: GachaViewModel, onOpen: (Int) -> Unit) {
                     Text(
                         text = if (s.source == GachaSource.WANT)
                             "Nenhum título encontrado na sua lista com estes filtros."
-                        else "Nenhum título encontrado no catálogo com estes filtros.",
+                        else "Nenhum título encontrado com estes filtros.",
                         color = KaguraGold,
                         style = MaterialTheme.typography.bodyMedium
                     )
@@ -359,7 +396,7 @@ fun GachaScreen(vm: GachaViewModel, onOpen: (Int) -> Unit) {
                         )
                         Spacer(Modifier.height(14.dp))
                         Text(
-                            text = "Consultando catálogo e perfil do usuário...",
+                            text = "Buscando recomendação ideal...",
                             style = MaterialTheme.typography.titleMedium,
                             color = KaguraText
                         )
@@ -388,7 +425,6 @@ fun GachaScreen(vm: GachaViewModel, onOpen: (Int) -> Unit) {
                     }
                 )
             } else if (phase == GachaPhase.IDLE && !s.empty && result == null) {
-                // Estado Inicial: Instruções Limpas
                 GlassCard(
                     modifier = Modifier.fillMaxWidth(),
                     backgroundColor = KaguraGlassSurface
@@ -414,7 +450,7 @@ fun GachaScreen(vm: GachaViewModel, onOpen: (Int) -> Unit) {
                         )
                         Spacer(Modifier.height(4.dp))
                         Text(
-                            text = "Ajuste os filtros acima e toque em 'Sortear Recomendação' para receber uma escolha personalizada de acordo com seu perfil.",
+                            text = "Escolha o tipo e o clima acima e toque em 'Sortear Recomendação'.",
                             style = MaterialTheme.typography.bodyMedium,
                             color = KaguraMuted,
                             textAlign = TextAlign.Center
@@ -435,14 +471,14 @@ private fun DrawnResultCard(
     onAddWant: () -> Unit,
     onShare: () -> Unit
 ) {
-    val alpha by animateFloatAsState(if (revealed) 1f else 0f, tween(600), label = "alpha")
+    val alphaAnim by animateFloatAsState(if (revealed) 1f else 0f, tween(600), label = "alpha")
     val shape = RoundedCornerShape(20.dp)
 
     GlassCard(
         modifier = Modifier
             .fillMaxWidth()
             .tiltOnTouch()
-            .graphicsLayer { this.alpha = alpha },
+            .graphicsLayer { alpha = alphaAnim },
         shape = shape,
         backgroundColor = KaguraGlassSurface,
         borderColor = item.rarity.color().copy(alpha = 0.5f),
@@ -522,7 +558,6 @@ private fun DrawnResultCard(
 
             Spacer(Modifier.height(14.dp))
 
-            // Botões de Ação do Resultado
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)

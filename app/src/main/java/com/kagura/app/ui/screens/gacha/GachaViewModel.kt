@@ -21,14 +21,12 @@ enum class GachaPhase { IDLE, ROLLING, REVEAL }
 
 data class GachaUiState(
     val source: GachaSource = GachaSource.CATALOG,
-    val mediaType: MediaType? = null,
-    val genre: String? = null,
+    val mediaType: MediaType = MediaType.ANIME,
+    val climate: String? = null,
     val phase: GachaPhase = GachaPhase.IDLE,
     val result: MediaItem? = null,
     val revealed: Boolean = false,
-    val empty: Boolean = false,
-    val userFavGenres: List<String> = emptyList(),
-    val totalAvailableCount: Int = 0
+    val empty: Boolean = false
 )
 
 @HiltViewModel
@@ -40,21 +38,14 @@ class GachaViewModel @Inject constructor(
     val state: StateFlow<GachaUiState> = _state.asStateFlow()
 
     init {
-        loadUserProfile()
-    }
-
-    private fun loadUserProfile() {
         viewModelScope.launch {
             repo.syncRemoteData()
-            val favs = repo.getUserFavoriteGenres()
-            val total = repo.getAll().size
-            _state.update { it.copy(userFavGenres = favs, totalAvailableCount = total) }
         }
     }
 
     fun setSource(s: GachaSource) = _state.update { it.copy(source = s, empty = false) }
-    fun setMediaType(t: MediaType?) = _state.update { it.copy(mediaType = t, empty = false) }
-    fun setGenre(g: String?) = _state.update { it.copy(genre = g, empty = false) }
+    fun setMediaType(t: MediaType) = _state.update { it.copy(mediaType = t, empty = false) }
+    fun setClimate(c: String?) = _state.update { it.copy(climate = c, empty = false) }
 
     fun roll() {
         if (_state.value.phase == GachaPhase.ROLLING) return
@@ -62,19 +53,15 @@ class GachaViewModel @Inject constructor(
             _state.update { it.copy(phase = GachaPhase.ROLLING, result = null, revealed = false, empty = false) }
             delay(1000)
             val s = _state.value
-            val item = randomItem(s.source, s.mediaType, s.genre)
+            val item = randomItem(s.source, s.mediaType, s.climate)
             if (item == null) {
                 _state.update { it.copy(phase = GachaPhase.IDLE, empty = true) }
             } else {
-                val total = repo.getAll().size
-                val favs = repo.getUserFavoriteGenres()
                 _state.update {
                     it.copy(
                         phase = GachaPhase.REVEAL,
                         result = item,
-                        revealed = false,
-                        totalAvailableCount = total,
-                        userFavGenres = favs
+                        revealed = false
                     )
                 }
                 repo.recordGachaPull(item.id, 0, item.rarity.name)
