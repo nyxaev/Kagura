@@ -1,0 +1,13 @@
+<resources>
+    <style name="Theme.Kagura.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">#120B2A</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher</item>
+        <item name="postSplashScreenTheme">@style/Theme.Kagura</item>
+    </style>
+
+    <style name="Theme.Kagura" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">#120B2A</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+    </style>
+</resources>
