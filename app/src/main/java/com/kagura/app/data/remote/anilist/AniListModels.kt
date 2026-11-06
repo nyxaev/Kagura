@@ -45,7 +45,13 @@ data class AniListMediaItem(
     val chapters: Int? = null,
     val coverImage: AniListCoverImage? = null,
     val bannerImage: String? = null,
-    val studio: AniListStudios? = null
+    val studio: AniListStudios? = null,
+    val startDate: AniListFuzzyDate? = null
+)
+
+@Serializable
+data class AniListFuzzyDate(
+    val year: Int? = null
 )
 
 @Serializable

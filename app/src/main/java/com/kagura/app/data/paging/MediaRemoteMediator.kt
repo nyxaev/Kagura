@@ -90,6 +90,7 @@ class MediaRemoteMediator(
                   chapters
                   coverImage { large medium }
                   bannerImage
+                  startDate { year }
                 }
               }
             }
@@ -131,7 +132,7 @@ class MediaRemoteMediator(
                 genre = primaryGenre,
                 tears = if (scoreVal >= 8.0f) 5 else 3,
                 units = unitsVal,
-                year = 2023,
+                year = item.startDate?.year ?: 0,
                 accent = if (typeStr == "MANGA") 0xFF7FD6F5 else 0xFFE056FD,
                 genres = genreStr,
                 externalId = item.id.toString(),

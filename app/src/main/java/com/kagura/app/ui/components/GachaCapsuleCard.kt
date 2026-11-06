@@ -47,17 +47,18 @@ import com.kagura.app.ui.theme.*
 @Composable
 fun GachaCapsuleButton(rolling: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val t = rememberInfiniteTransition(label = "cap")
-    val shake by t.animateFloat(-12f, 12f, infiniteRepeatable(tween(90), RepeatMode.Reverse), label = "shake")
-    val glow by t.animateFloat(0.25f, 0.8f, infiniteRepeatable(tween(1400), RepeatMode.Reverse), label = "glow")
+    val shakeAnim = t.animateFloat(-12f, 12f, infiniteRepeatable(tween(90), RepeatMode.Reverse), label = "shake")
+    val glowAnim = t.animateFloat(0.25f, 0.8f, infiniteRepeatable(tween(1400), RepeatMode.Reverse), label = "glow")
     Box(
         modifier.size(200.dp)
-            .graphicsLayer { rotationZ = if (rolling) shake else 0f }
+            .graphicsLayer { rotationZ = if (rolling) shakeAnim.value else 0f }
             .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, enabled = !rolling, onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
         Canvas(Modifier.fillMaxSize()) {
             val c = center
             val r = size.minDimension * 0.34f
+            val glow = glowAnim.value
             drawCircle(
                 Brush.radialGradient(listOf(KaguraViolet.copy(alpha = glow), Color.Transparent), c, size.minDimension / 2),
                 size.minDimension / 2, c

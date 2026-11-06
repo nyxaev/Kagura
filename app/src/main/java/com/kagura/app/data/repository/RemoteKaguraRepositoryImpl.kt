@@ -81,7 +81,7 @@ class RemoteKaguraRepositoryImpl @Inject constructor(
             val anilistDeferred = async {
                 try {
                     val gql = GraphQLRequest(
-                        query = "query (\$search: String) { Page(page: 1, perPage: 20) { media(type: ANIME, search: \$search) { id title { romaji english native } type genres description averageScore popularity episodes chapters coverImage { large medium } bannerImage } } }",
+                        query = "query (\$search: String) { Page(page: 1, perPage: 20) { media(type: ANIME, search: \$search) { id title { romaji english native } type genres description averageScore popularity episodes chapters coverImage { large medium } bannerImage startDate { year } } } }",
                         variables = mapOf("search" to kotlinx.serialization.json.JsonPrimitive(query))
                     )
                     val resp = aniListApi.queryMedia(gql)
@@ -107,7 +107,7 @@ class RemoteKaguraRepositoryImpl @Inject constructor(
                             vibe = primaryGenre,
                             tears = if (scoreVal >= 8.0f) 5 else 3,
                             units = item.episodes ?: 12,
-                            year = 2023,
+                            year = item.startDate?.year ?: 0,
                             accent = 0xFFE056FD,
                             genre = primaryGenre,
                             genres = genreStr,
@@ -234,6 +234,7 @@ class RemoteKaguraRepositoryImpl @Inject constructor(
                                           popularity
                                           episodes
                                           coverImage { large medium }
+                                          startDate { year }
                                         }
                                       }
                                     }
@@ -267,7 +268,7 @@ class RemoteKaguraRepositoryImpl @Inject constructor(
                                         vibe = primaryGenre,
                                         tears = if (scoreVal >= 8.0f) 5 else 3,
                                         units = item.episodes ?: 12,
-                                        year = 2023,
+                                        year = item.startDate?.year ?: 0,
                                         accent = 0xFFE056FD,
                                         genre = primaryGenre,
                                         genres = genreStr,
@@ -303,6 +304,7 @@ class RemoteKaguraRepositoryImpl @Inject constructor(
                                           popularity
                                           chapters
                                           coverImage { large medium }
+                                          startDate { year }
                                         }
                                       }
                                     }
@@ -336,7 +338,7 @@ class RemoteKaguraRepositoryImpl @Inject constructor(
                                         vibe = primaryGenre,
                                         tears = if (scoreVal >= 8.0f) 5 else 3,
                                         units = item.chapters ?: 50,
-                                        year = 2022,
+                                        year = item.startDate?.year ?: 0,
                                         accent = 0xFF7FD6F5,
                                         genre = primaryGenre,
                                         genres = genreStr,

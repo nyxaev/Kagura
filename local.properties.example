@@ -1,1 +1,3 @@
-TMDB_API_KEY=your_api_key_here
+# Chave gratuita do TMDB: https://www.themoviedb.org/settings/api
+# Sem ela, o conteúdo de Filmes fica indisponível. Anime e Mangá funcionam sem chave.
+TMDB_API_KEY=

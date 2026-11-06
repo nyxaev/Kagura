@@ -7,8 +7,10 @@ import com.kagura.app.domain.model.ItemStatus
 import com.kagura.app.domain.model.MediaType
 import com.kagura.app.domain.model.Raridade
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
@@ -49,5 +51,7 @@ class ProfileViewModel @Inject constructor(
             inProgress = all.count { it.status == ItemStatus.IN_PROGRESS },
             legendaryDone = all.count { it.status == ItemStatus.COMPLETED && it.rarity == Raridade.LENDARIO }
         )
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), ProfileStats())
+    }
+        .flowOn(Dispatchers.Default)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), ProfileStats())
 }

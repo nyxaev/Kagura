@@ -342,8 +342,9 @@ private fun SearchRow(m: MediaItem, onClick: () -> Unit) {
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
+                val yearStr = if (m.year > 0) " • ${m.year}" else ""
                 Text(
-                    text = "${m.type.singular} • ${m.year} • ${m.vibe}",
+                    text = "${m.type.singular}$yearStr • ${m.vibe}",
                     color = KaguraMuted,
                     style = MaterialTheme.typography.bodyMedium
                 )

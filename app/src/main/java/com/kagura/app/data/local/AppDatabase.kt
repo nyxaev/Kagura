@@ -61,6 +61,14 @@ val MIGRATION_2_3 = object : Migration(2, 3) {
     }
 }
 
+val MIGRATION_3_4 = object : Migration(3, 4) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("DELETE FROM media WHERE source = 'anilist' AND id NOT IN (SELECT mediaId FROM user_state)")
+        db.execSQL("UPDATE media SET year = 0 WHERE source = 'anilist'")
+        db.execSQL("DELETE FROM remote_keys")
+    }
+}
+
 @Database(
     entities = [
         MediaEntity::class,
@@ -69,7 +77,7 @@ val MIGRATION_2_3 = object : Migration(2, 3) {
         GachaHistoryEntity::class,
         RemoteKeysEntity::class
     ],
-    version = 3,
+    version = 4,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

@@ -70,7 +70,7 @@ fun DetailScreen(vm: DetailViewModel, onBack: () -> Unit) {
             ) {
                 Pill(m.rarity.label, m.rarity.color())
                 Pill(m.type.singular, KaguraCyan)
-                Pill(m.year.toString(), KaguraMuted)
+                if (m.year > 0) Pill(m.year.toString(), KaguraMuted)
                 Pill(m.vibe, KaguraViolet)
                 if (m.units > 1) Pill("${m.units} ${if (m.type == MediaType.MANGA) "cap." else "ep."}", KaguraMuted)
                 Pill("★ ${m.score}", KaguraGold)

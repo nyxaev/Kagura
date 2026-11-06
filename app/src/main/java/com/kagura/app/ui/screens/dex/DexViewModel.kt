@@ -9,10 +9,12 @@ import com.kagura.app.domain.model.MediaType
 import com.kagura.app.domain.model.Raridade
 import com.kagura.app.domain.usecase.FilterDexUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
@@ -36,7 +38,9 @@ class DexViewModel @Inject constructor(
     val state: StateFlow<DexUiState> = combine(repo.observeAll(), type, rarity) { all, t, r ->
         val ofType = all.filter { it.type == t }
         DexUiState(t, r, filter(all, t, r), filter.progress(all, t), ofType.count { it.status == ItemStatus.COMPLETED }, ofType.size)
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), DexUiState())
+    }
+        .flowOn(Dispatchers.Default)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), DexUiState())
 
     fun setType(t: MediaType) { type.value = t }
     fun setRarity(r: Raridade?) { rarity.value = r }

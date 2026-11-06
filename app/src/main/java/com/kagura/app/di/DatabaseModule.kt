@@ -6,6 +6,7 @@ import com.kagura.app.data.local.AppDatabase
 import com.kagura.app.data.local.GachaHistoryDao
 import com.kagura.app.data.local.MIGRATION_1_2
 import com.kagura.app.data.local.MIGRATION_2_3
+import com.kagura.app.data.local.MIGRATION_3_4
 import com.kagura.app.data.local.MediaDao
 import com.kagura.app.data.local.RemoteKeysDao
 import com.kagura.app.data.local.UserStateDao
@@ -30,7 +31,7 @@ object DatabaseModule {
             AppDatabase::class.java,
             "kagura.db"
         )
-        .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+        .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
         .fallbackToDestructiveMigration()
         .build()
     }

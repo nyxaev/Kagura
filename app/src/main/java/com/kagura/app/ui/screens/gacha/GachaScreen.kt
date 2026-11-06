@@ -539,8 +539,9 @@ private fun DrawnResultCard(
                         overflow = TextOverflow.Ellipsis
                     )
 
+                    val yearStr = if (item.year > 0) " • ${item.year}" else ""
                     Text(
-                        text = "${item.type.singular} • ${item.year} • ${item.vibe}",
+                        text = "${item.type.singular}$yearStr • ${item.vibe}",
                         style = MaterialTheme.typography.bodyMedium,
                         color = KaguraMuted
                     )

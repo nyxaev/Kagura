@@ -20,7 +20,7 @@
 
 ## Sobre
 
-Kagura (神楽, a dança sagrada japonesa) é um app Android que ajuda você a decidir o que assistir ou ler a seguir. Em vez de escolher por gênero, você escolhe o clima do momento e o app sorteia uma recomendação do catálogo do AniList, com raridades, coleção e estatísticas, no estilo gacha.
+Kagura (神楽, a dança sagrada japonesa) é um app Android que ajuda você a decidir o que assistir ou ler a seguir. Com integração à API do AniList para Animes e Mangás, em vez de escolher por gênero, você escolhe o clima do momento e o app sorteia uma recomendação, com raridades, coleção e estatísticas, no estilo gacha.
 
 Projeto de curso, feito com foco em arquitetura limpa, interface própria e boas práticas do Android moderno.
 
@@ -32,15 +32,14 @@ Projeto de curso, feito com foco em arquitetura limpa, interface própria e boas
 
 <table>
   <tr>
-    <td align="center"><img src="docs/screenshots/splash.png" width="190" alt="Tela inicial"><br><sub>Tela inicial</sub></td>
     <td align="center"><img src="docs/screenshots/sorteio.png" width="190" alt="Sorteio"><br><sub>Sorteio</sub></td>
     <td align="center"><img src="docs/screenshots/dex.png" width="190" alt="Dex"><br><sub>Dex</sub></td>
+    <td align="center"><img src="docs/screenshots/busca.png" width="190" alt="Busca"><br><sub>Busca</sub></td>
   </tr>
 </table>
 
 <table>
   <tr>
-    <td align="center"><img src="docs/screenshots/busca.png" width="190" alt="Busca"><br><sub>Busca</sub></td>
     <td align="center"><img src="docs/screenshots/detalhes.png" width="190" alt="Detalhes"><br><sub>Detalhes</sub></td>
   </tr>
 </table>
@@ -51,35 +50,29 @@ Projeto de curso, feito com foco em arquitetura limpa, interface própria e boas
 
 ## Funcionalidades
 
-- **Tela inicial:** splash com gradiente noturno, lua em degradê e aura neon, com o botão "Começar a Jornada".
 - **Navegação:** barra inferior em vidro fosco com 4 abas (Sorteio, Dex, Busca e Perfil).
-- **Sorteio:** alternador animado entre Anime e Mangá, origem em Catálogo Geral ou Minha Lista, e três climas (Tranquilo, Intenso e Super intenso) que mapeiam para gêneros do AniList.
+- **Sorteio:** alternador animado entre Anime e Mangá, origem em Catálogo Geral ou Minha Lista, e três climas (Tranquilo, Intenso e Super intenso) que mapeiam para gêneros.
 - **Raridades:** sorteio ponderado por raridade (Comum, Raro, Épico, Lendário), pontuação e histórico do usuário.
 - **Card de revelação:** animação de cápsula com ações rápidas (Ver Detalhes, Quero Ver, Sortear Outro, Compartilhar).
 - **Dex:** checklist de colecionador em abas (Animes e Mangás), filtros por raridade e status e barra de progresso.
-- **Busca:** focada em animes, em tempo real via AniList GraphQL, com fallback para busca local offline.
-- **Perfil:** total de títulos, concluídos, progresso geral, episódios e capítulos salvos e lendários coletados.
-- **Detalhes:** capa, título original, sinopse, nota, ano, episódios ou capítulos, status e notas pessoais.
+- **Busca:** focada em animes, em tempo real via API do AniList, com fallback para busca local offline.
+- **Perfil:** total de títulos, concluídos, progresso geral, episódios, capítulos e lendários coletados.
+- **Detalhes:** capa, título original, sinopse, nota, ano, unidades, status e notas pessoais.
 
 <p align="center"><img src="docs/kagura-divider.svg" width="520" alt=""></p>
 
 ## Arquitetura
 
-```mermaid
-graph TD
-    A[UI - Jetpack Compose + Material 3] --> B[ViewModels - MVVM]
-    B --> C[Domain - UseCases]
-    C --> D[Repository]
-    D -->|Cache e busca FTS| E[(Room Database)]
-    D -->|GraphQL| F[AniList API - Retrofit]
-    F -->|RemoteMediator + Paging 3| E
-```
+1. UI (Jetpack Compose + Material 3)
+2. ViewModels (MVVM)
+3. Domain (UseCases)
+4. Repository & Data (Room Database com FTS, AniList API via Retrofit e Paging 3)
 
 | Camada | Responsabilidade |
 |:--|:--|
 | `ui/` | Telas em Compose, componentes visuais, navegação e tema |
 | `domain/` | Modelos e casos de uso (sorteio, filtros da Dex, cálculo de raridade) |
-| `data/` | Room, API do AniList, paginação e repositórios |
+| `data/` | Room, AniList API, paginação e repositórios |
 | `di/` | Módulos do Hilt (banco, rede, DataStore e repositórios) |
 
 Rede em segundo plano com `Dispatchers.IO` para evitar ANR.
@@ -98,7 +91,6 @@ Kagura/
 ├── build.gradle.kts
 ├── settings.gradle.kts
 ├── gradle.properties
-├── local.properties.example
 ├── gradle/
 │   └── libs.versions.toml
 └── app/
@@ -177,11 +169,9 @@ Kagura/
             │                   │   ├── profile/
             │                   │   │   ├── ProfileScreen.kt
             │                   │   │   └── ProfileViewModel.kt
-            │                   │   ├── search/
-            │                   │   │   ├── SearchScreen.kt
-            │                   │   │   └── SearchViewModel.kt
-            │                   │   └── welcome/
-            │                   │       └── WelcomeScreen.kt
+            │                   │   └── search/
+            │                   │       ├── SearchScreen.kt
+            │                   │       └── SearchViewModel.kt
             │                   └── theme/
             │                       ├── Color.kt
             │                       ├── Theme.kt
@@ -192,10 +182,7 @@ Kagura/
                 │   ├── ic_launcher_background.xml
                 │   ├── ic_launcher_foreground.xml
                 │   └── ic_launcher_monochrome.xml
-                ├── font/
-                │   └── kagura.ttf
                 └── values/
-                    ├── font_certs.xml
                     ├── strings.xml
                     └── themes.xml
 ```
@@ -226,15 +213,11 @@ Kagura/
 
 Requisitos: Android Studio recente, JDK 17 e um aparelho ou emulador com Android 8.0 (API 26) ou superior.
 
-```bash
-git clone https://github.com/nyxaev/Kagura.git
-```
-
 1. Abra a pasta no Android Studio e aguarde o sync do Gradle.
 2. Conecte um aparelho por USB ou inicie um emulador.
 3. Clique em Run (`Shift + F10`).
 
-O app usa a API pública do AniList, que não exige chave de acesso.
+O app utiliza a API pública do AniList, que não exige nenhuma chave de acesso.
 
 <p align="center"><img src="docs/kagura-divider.svg" width="520" alt=""></p>
 
