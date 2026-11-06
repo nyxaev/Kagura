@@ -32,7 +32,8 @@ Projeto de curso, feito com foco em arquitetura limpa, interface própria e boas
 
 <table>
   <tr>
-    <td align="center"><img src="docs/screenshots/sorteio.png" width="190" alt="Sorteio"><br><sub>Sorteio</sub></td>
+    <td align="center"><img src="docs/screenshots/splash.png" width="190" alt="Sorteio"><br><sub>Sorteio</sub></td>
+     <td align="center"><img src="docs/screenshots/sorteio.png" width="190" alt="Sorteio"><br><sub>Sorteio</sub></td>
     <td align="center"><img src="docs/screenshots/dex.png" width="190" alt="Dex"><br><sub>Dex</sub></td>
     <td align="center"><img src="docs/screenshots/busca.png" width="190" alt="Busca"><br><sub>Busca</sub></td>
   </tr>
