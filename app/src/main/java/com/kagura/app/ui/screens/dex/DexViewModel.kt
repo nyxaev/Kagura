@@ -17,7 +17,7 @@ import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
 data class DexUiState(
-    val type: MediaType = MediaType.MOVIE,
+    val type: MediaType = MediaType.ANIME,
     val rarity: Raridade? = null,
     val items: List<MediaItem> = emptyList(),
     val progress: Float = 0f,
@@ -30,7 +30,7 @@ class DexViewModel @Inject constructor(
     repo: KaguraRepository,
     private val filter: FilterDexUseCase
 ) : ViewModel() {
-    private val type = MutableStateFlow(MediaType.MOVIE)
+    private val type = MutableStateFlow(MediaType.ANIME)
     private val rarity = MutableStateFlow<Raridade?>(null)
 
     val state: StateFlow<DexUiState> = combine(repo.observeAll(), type, rarity) { all, t, r ->

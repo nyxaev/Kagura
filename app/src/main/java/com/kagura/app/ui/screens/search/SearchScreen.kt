@@ -4,12 +4,10 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -31,7 +29,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kagura.app.domain.model.ItemStatus
 import com.kagura.app.domain.model.MediaItem
-import com.kagura.app.domain.model.MediaType
 import com.kagura.app.ui.components.CoverImage
 import com.kagura.app.ui.components.GlassCard
 import com.kagura.app.ui.components.Pill
@@ -42,21 +39,11 @@ import com.kagura.app.ui.components.tiltOnTouch
 import com.kagura.app.ui.theme.*
 import java.util.Locale
 
-private data class CategoryOption(val id: String, val label: String)
-
-private val categories = listOf(
-    CategoryOption("Todos", "Todos"),
-    CategoryOption("Anime", "Animes"),
-    CategoryOption("Manga", "Mangás"),
-    CategoryOption("Filme", "Filmes")
-)
-
-private val popularSuggestions = listOf("Attack on Titan", "One Piece", "Spider-Man", "Naruto", "Oppenheimer", "Jujutsu Kaisen")
+private val popularSuggestions = listOf("Attack on Titan", "One Piece", "Naruto", "Jujutsu Kaisen", "Death Note", "Frieren")
 
 @Composable
 fun SearchScreen(vm: SearchViewModel, onOpen: (Int) -> Unit) {
     val q by vm.query.collectAsStateWithLifecycle()
-    val category by vm.category.collectAsStateWithLifecycle()
     val state by vm.uiState.collectAsStateWithLifecycle()
 
     Column(
@@ -66,12 +53,12 @@ fun SearchScreen(vm: SearchViewModel, onOpen: (Int) -> Unit) {
             .padding(horizontal = 16.dp, vertical = 8.dp)
     ) {
         Text(
-            text = "Descobrir & Buscar",
+            text = "Descobrir Anime",
             style = MaterialTheme.typography.headlineLarge,
             color = KaguraText
         )
         Text(
-            text = "Encontre animes, mangás e filmes instantaneamente",
+            text = "Encontre animes instantaneamente",
             style = MaterialTheme.typography.bodyMedium,
             color = KaguraMuted,
             modifier = Modifier.padding(bottom = 14.dp)
@@ -84,7 +71,7 @@ fun SearchScreen(vm: SearchViewModel, onOpen: (Int) -> Unit) {
             modifier = Modifier.fillMaxWidth(),
             placeholder = {
                 Text(
-                    "Buscar por título ou sinopse...",
+                    "Buscar anime por título...",
                     color = KaguraMuted.copy(alpha = 0.7f),
                     style = MaterialTheme.typography.bodyLarge
                 )
@@ -121,42 +108,11 @@ fun SearchScreen(vm: SearchViewModel, onOpen: (Int) -> Unit) {
 
         Spacer(Modifier.height(14.dp))
 
-        LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            contentPadding = PaddingValues(vertical = 2.dp)
-        ) {
-            items(categories) { cat ->
-                val selected = category == cat.id
-                Surface(
-                    onClick = { vm.setCategory(cat.id) },
-                    shape = RoundedCornerShape(50),
-                    color = if (selected) KaguraGlassViolet else KaguraGlassSurface,
-                    border = BorderStroke(
-                        width = if (selected) 1.5.dp else 1.dp,
-                        color = if (selected) KaguraViolet else KaguraGlassBorder
-                    )
-                ) {
-                    Box(
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = cat.label,
-                            style = MaterialTheme.typography.titleMedium,
-                            color = if (selected) KaguraText else KaguraMuted
-                        )
-                    }
-                }
-            }
-        }
-
-        Spacer(Modifier.height(14.dp))
-
         Crossfade(targetState = state, label = "search_state") { s ->
             when (s) {
                 is SearchUiState.Idle -> IdleSearchContent(onSelectSuggestion = vm::onQuery)
                 is SearchUiState.Loading -> LoadingSearchContent()
-                is SearchUiState.Success -> SuccessSearchContent(s, category, onOpen)
+                is SearchUiState.Success -> SuccessSearchContent(s, onOpen)
                 is SearchUiState.Empty -> EmptySearchContent()
                 is SearchUiState.Error -> ErrorSearchContent(s.message)
             }
@@ -180,13 +136,13 @@ private fun IdleSearchContent(onSelectSuggestion: (String) -> Unit) {
         )
         Spacer(Modifier.height(8.dp))
         Text(
-            text = "Digite ao menos 2 caracteres para buscar",
+            text = "Digite ao menos 2 caracteres para buscar animes",
             style = MaterialTheme.typography.titleMedium,
             color = KaguraText,
             textAlign = TextAlign.Center
         )
         Text(
-            text = "Acesse milhares de mídias online ou no seu banco local",
+            text = "Acesse milhares de animes online ou no seu banco local",
             style = MaterialTheme.typography.bodyMedium,
             color = KaguraMuted,
             textAlign = TextAlign.Center,
@@ -302,17 +258,9 @@ private fun LoadingSearchContent() {
 @Composable
 private fun SuccessSearchContent(
     s: SearchUiState.Success,
-    category: String,
     onOpen: (Int) -> Unit
 ) {
-    val filtered = s.items.filter { item ->
-        when (category) {
-            "Anime" -> item.type == MediaType.ANIME
-            "Manga" -> item.type == MediaType.MANGA
-            "Filme" -> item.type == MediaType.MOVIE
-            else -> true
-        }
-    }
+    val filtered = s.items
 
     Column(Modifier.fillMaxSize()) {
         if (s.isOffline) {
@@ -403,7 +351,7 @@ private fun SearchRow(m: MediaItem, onClick: () -> Unit) {
                 Spacer(Modifier.height(2.dp))
 
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Pill(m.rarity.label, m.rarity.color())
@@ -452,14 +400,14 @@ private fun EmptySearchContent() {
             )
             Spacer(Modifier.height(10.dp))
             Text(
-                text = "Nenhum resultado encontrado",
+                text = "Nenhum anime encontrado",
                 style = MaterialTheme.typography.titleLarge,
                 color = KaguraText,
                 textAlign = TextAlign.Center
             )
             Spacer(Modifier.height(4.dp))
             Text(
-                text = "Tente buscar com outro nome ou alterar a categoria selecionada",
+                text = "Tente buscar com outro nome de anime",
                 style = MaterialTheme.typography.bodyMedium,
                 color = KaguraMuted,
                 textAlign = TextAlign.Center

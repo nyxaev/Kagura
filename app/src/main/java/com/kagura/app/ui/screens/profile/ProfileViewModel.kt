@@ -39,7 +39,7 @@ class ProfileViewModel @Inject constructor(
         ProfileStats(
             total = all.size, completed = done,
             progress = if (all.isEmpty()) 0f else done / all.size.toFloat(),
-            perType = listOf(MediaType.MOVIE, MediaType.ANIME, MediaType.MANGA).map { t ->
+            perType = listOf(MediaType.ANIME, MediaType.MANGA).map { t ->
                 val l = all.filter { it.type == t }
                 TypeProgress(t, l.count { it.status == ItemStatus.COMPLETED }, l.size)
             },

@@ -38,7 +38,7 @@ import com.kagura.app.ui.components.tiltOnTouch
 import com.kagura.app.ui.theme.*
 import kotlin.math.roundToInt
 
-private val tabs = listOf(MediaType.MOVIE, MediaType.ANIME, MediaType.MANGA)
+private val tabs = listOf(MediaType.ANIME, MediaType.MANGA)
 
 @Composable
 fun DexScreen(vm: DexViewModel, onOpen: (Int) -> Unit) {

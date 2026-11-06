@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.kagura.app.data.repository.KaguraRepository
 import com.kagura.app.domain.model.MediaItem
-import com.kagura.app.domain.model.MediaType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
@@ -36,9 +35,6 @@ class SearchViewModel @Inject constructor(
     private val _query = MutableStateFlow("")
     val query: StateFlow<String> = _query.asStateFlow()
 
-    private val _category = MutableStateFlow("Todos")
-    val category: StateFlow<String> = _category.asStateFlow()
-
     val uiState: StateFlow<SearchUiState> = _query
         .debounce(300)
         .distinctUntilChanged()
@@ -50,7 +46,7 @@ class SearchViewModel @Inject constructor(
                 }
                 emit(SearchUiState.Loading)
                 try {
-                    val results = repo.searchSync(q.trim())
+                    val results = repo.searchSync(q.trim()).filter { it.type == com.kagura.app.domain.model.MediaType.ANIME }
                     if (results.isEmpty()) {
                         emit(SearchUiState.Empty)
                     } else {
@@ -58,7 +54,7 @@ class SearchViewModel @Inject constructor(
                     }
                 } catch (e: Exception) {
                     try {
-                        val fallback = repo.searchLocalOnly(q.trim())
+                        val fallback = repo.searchLocalOnly(q.trim()).filter { it.type == com.kagura.app.domain.model.MediaType.ANIME }
                         if (fallback.isNotEmpty()) {
                             emit(SearchUiState.Success(fallback, isOffline = true))
                         } else {
@@ -74,9 +70,5 @@ class SearchViewModel @Inject constructor(
 
     fun onQuery(q: String) {
         _query.value = q
-    }
-
-    fun setCategory(cat: String) {
-        _category.value = cat
     }
 }

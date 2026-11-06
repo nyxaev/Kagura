@@ -18,32 +18,45 @@ class GetRandomGachaItemUseCase @Inject constructor(
         this.random = random
     }
 
+    private fun getGenresForClimate(climate: String?): List<String> {
+        return when (climate) {
+            "Tranquilo" -> listOf("Slice of Life", "Comedy", "Romance", "Drama", "Cotidiano")
+            "Intenso" -> listOf("Action", "Adventure", "Fantasy", "Sports", "Aventura", "Épico")
+            "Super intenso" -> listOf("Psychological", "Thriller", "Horror", "Mystery", "Sci-Fi", "Sombrio")
+            else -> emptyList()
+        }
+    }
+
     suspend operator fun invoke(
         source: GachaSource = GachaSource.CATALOG,
-        mediaType: MediaType? = null,
-        genre: String? = null
+        mediaType: MediaType = MediaType.ANIME,
+        climate: String? = null
     ): MediaItem? {
         repo.syncRemoteData()
 
+        val targetGenres = getGenresForClimate(climate)
+
         val initialPool = repo.getAll().filter { item ->
             val matchSource = (source == GachaSource.CATALOG || item.status == ItemStatus.WANT)
-            val matchType = (mediaType == null || item.type == mediaType)
-            val matchGenre = (genre == null || genre.equals("Todos os gêneros", ignoreCase = true) ||
-                    item.genre.equals(genre, ignoreCase = true) ||
-                    item.vibe.contains(genre, ignoreCase = true) ||
-                    item.genres.any { it.equals(genre, ignoreCase = true) })
-            matchSource && matchType && matchGenre
+            val matchType = (item.type == mediaType)
+            val matchClimate = climate == null || targetGenres.any { cg ->
+                item.genre.equals(cg, ignoreCase = true) ||
+                        item.vibe.contains(cg, ignoreCase = true) ||
+                        item.genres.any { it.equals(cg, ignoreCase = true) }
+            }
+            matchSource && matchType && matchClimate
         }
 
         val pool = if (initialPool.isEmpty() && source == GachaSource.CATALOG) {
-            repo.fetchCatalogFromRemote(mediaType, genre)
+            repo.fetchCatalogFromRemote(mediaType, null)
             repo.getAll().filter { item ->
-                val matchType = (mediaType == null || item.type == mediaType)
-                val matchGenre = (genre == null || genre.equals("Todos os gêneros", ignoreCase = true) ||
-                        item.genre.equals(genre, ignoreCase = true) ||
-                        item.vibe.contains(genre, ignoreCase = true) ||
-                        item.genres.any { it.equals(genre, ignoreCase = true) })
-                matchType && matchGenre
+                val matchType = (item.type == mediaType)
+                val matchClimate = climate == null || targetGenres.any { cg ->
+                    item.genre.equals(cg, ignoreCase = true) ||
+                            item.vibe.contains(cg, ignoreCase = true) ||
+                            item.genres.any { it.equals(cg, ignoreCase = true) }
+                }
+                matchType && matchClimate
             }
         } else initialPool
 

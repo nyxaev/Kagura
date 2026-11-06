@@ -9,7 +9,6 @@ import com.kagura.app.data.local.MediaEntity
 import com.kagura.app.data.local.RemoteKeysEntity
 import com.kagura.app.data.remote.anilist.AniListApi
 import com.kagura.app.data.remote.anilist.GraphQLRequest
-import com.kagura.app.data.remote.tmdb.TmdbApi
 import com.kagura.app.domain.model.MediaType
 import com.kagura.app.domain.usecase.RarityCalculator
 import kotlinx.serialization.json.JsonPrimitive
@@ -19,8 +18,7 @@ import kotlinx.serialization.json.buildJsonObject
 class MediaRemoteMediator(
     private val mediaType: MediaType,
     private val db: AppDatabase,
-    private val aniListApi: AniListApi,
-    private val tmdbApi: TmdbApi
+    private val aniListApi: AniListApi
 ) : RemoteMediator<Int, MediaEntity>() {
 
     override suspend fun load(
@@ -50,7 +48,6 @@ class MediaRemoteMediator(
             val fetchedEntities = when (mediaType) {
                 MediaType.ANIME -> fetchAniList(page, "ANIME")
                 MediaType.MANGA -> fetchAniList(page, "MANGA")
-                MediaType.MOVIE -> fetchTmdb(page)
             }
 
             val endOfPaginationReached = fetchedEntities.isEmpty()
@@ -139,40 +136,6 @@ class MediaRemoteMediator(
                 genres = genreStr,
                 externalId = item.id.toString(),
                 source = "anilist",
-                lastSyncedAt = System.currentTimeMillis(),
-                popularity = pop
-            )
-        }
-    }
-
-    private suspend fun fetchTmdb(page: Int): List<MediaEntity> {
-        val response = tmdbApi.getPopularMovies(page = page)
-        return response.results.map { movie ->
-            val scoreVal = movie.voteAverage.toFloat()
-            val pop = movie.popularity.toInt()
-            val calculatedRarity = RarityCalculator.calculate(scoreVal, pop)
-            val posterUrl = if (movie.posterPath != null) "https://image.tmdb.org/t/p/w500${movie.posterPath}" else ""
-
-            MediaEntity(
-                id = 200000 + movie.id,
-                title = movie.title,
-                japaneseTitle = movie.originalTitle ?: "",
-                type = "MOVIE",
-                synopsis = movie.overview?.ifBlank { "Sem sinopse disponível." } ?: "Sem sinopse disponível.",
-                coverUrl = posterUrl,
-                rarity = calculatedRarity.name,
-                status = "NONE",
-                userRating = null,
-                score = scoreVal,
-                vibe = "Cinema",
-                genre = "Filme",
-                tears = if (scoreVal >= 8.0f) 5 else 3,
-                units = 1,
-                year = movie.releaseDate?.take(4)?.toIntOrNull() ?: 2024,
-                accent = 0xFFFF7979,
-                genres = "Filme",
-                externalId = movie.id.toString(),
-                source = "tmdb",
                 lastSyncedAt = System.currentTimeMillis(),
                 popularity = pop
             )

@@ -17,7 +17,6 @@ import com.kagura.app.data.model.toDomain
 import com.kagura.app.data.paging.MediaRemoteMediator
 import com.kagura.app.data.remote.anilist.AniListApi
 import com.kagura.app.data.remote.anilist.GraphQLRequest
-import com.kagura.app.data.remote.tmdb.TmdbApi
 import com.kagura.app.domain.model.ItemStatus
 import com.kagura.app.domain.model.MediaItem
 import com.kagura.app.domain.model.MediaType
@@ -43,8 +42,7 @@ class RemoteKaguraRepositoryImpl @Inject constructor(
     private val mediaDao: MediaDao,
     private val userStateDao: UserStateDao,
     private val gachaHistoryDao: GachaHistoryDao,
-    private val aniListApi: AniListApi,
-    private val tmdbApi: TmdbApi
+    private val aniListApi: AniListApi
 ) : KaguraRepository {
 
     override fun observeAll(): Flow<List<MediaItem>> =
@@ -83,7 +81,7 @@ class RemoteKaguraRepositoryImpl @Inject constructor(
             val anilistDeferred = async {
                 try {
                     val gql = GraphQLRequest(
-                        query = "query (\$search: String) { Page(page: 1, perPage: 20) { media(search: \$search) { id title { romaji english native } type genres description averageScore popularity episodes chapters coverImage { large medium } bannerImage } } }",
+                        query = "query (\$search: String) { Page(page: 1, perPage: 20) { media(type: ANIME, search: \$search) { id title { romaji english native } type genres description averageScore popularity episodes chapters coverImage { large medium } bannerImage } } }",
                         variables = mapOf("search" to kotlinx.serialization.json.JsonPrimitive(query))
                     )
                     val resp = aniListApi.queryMedia(gql)
@@ -95,12 +93,11 @@ class RemoteKaguraRepositoryImpl @Inject constructor(
                         val primaryGenre = item.genres.firstOrNull() ?: "Outros"
                         val titleStr = item.title?.english ?: item.title?.romaji ?: "Sem título"
                         val img = item.coverImage?.large ?: item.coverImage?.medium ?: ""
-                        val itemType = if (item.type == "MANGA") "MANGA" else "ANIME"
                         MediaEntity(
-                            id = if (itemType == "MANGA") 300000 + item.id else 100000 + item.id,
+                            id = 100000 + item.id,
                             title = titleStr,
                             japaneseTitle = item.title?.native ?: "",
-                            type = itemType,
+                            type = "ANIME",
                             synopsis = item.description?.replace(Regex("<[^>]*>"), "") ?: "Sem sinopse.",
                             coverUrl = img,
                             rarity = calculatedRarity.name,
@@ -109,9 +106,9 @@ class RemoteKaguraRepositoryImpl @Inject constructor(
                             score = scoreVal,
                             vibe = primaryGenre,
                             tears = if (scoreVal >= 8.0f) 5 else 3,
-                            units = item.episodes ?: item.chapters ?: 12,
+                            units = item.episodes ?: 12,
                             year = 2023,
-                            accent = if (itemType == "MANGA") 0xFF7FD6F5 else 0xFFE056FD,
+                            accent = 0xFFE056FD,
                             genre = primaryGenre,
                             genres = genreStr,
                             externalId = item.id.toString(),
@@ -124,45 +121,7 @@ class RemoteKaguraRepositoryImpl @Inject constructor(
                 }
             }
 
-            val tmdbDeferred = async {
-                try {
-                    val resp = tmdbApi.searchMovies(query = query)
-                    resp.results.map { movie ->
-                        val scoreVal = movie.voteAverage.toFloat()
-                        val pop = movie.popularity.toInt()
-                        val calculatedRarity = RarityCalculator.calculate(scoreVal, pop)
-                        val posterUrl = if (movie.posterPath != null) "https://image.tmdb.org/t/p/w500${movie.posterPath}" else ""
-                        val genreName = mapTmdbGenreIdToName(movie.genreIds.firstOrNull())
-                        val allGenreNames = movie.genreIds.map { mapTmdbGenreIdToName(it) }.distinct().joinToString(", ")
-                        MediaEntity(
-                            id = 200000 + movie.id,
-                            title = movie.title,
-                            japaneseTitle = movie.originalTitle ?: "",
-                            type = "MOVIE",
-                            synopsis = movie.overview?.ifBlank { "Sem sinopse." } ?: "Sem sinopse.",
-                            coverUrl = posterUrl,
-                            rarity = calculatedRarity.name,
-                            status = "NONE",
-                            userRating = null,
-                            score = scoreVal,
-                            vibe = genreName,
-                            tears = if (scoreVal >= 8.0f) 5 else 3,
-                            units = 1,
-                            year = movie.releaseDate?.take(4)?.toIntOrNull() ?: 2024,
-                            accent = 0xFFFF7979,
-                            genre = genreName,
-                            genres = if (allGenreNames.isBlank()) genreName else allGenreNames,
-                            externalId = movie.id.toString(),
-                            source = "tmdb",
-                            popularity = pop
-                        )
-                    }
-                } catch (e: Exception) {
-                    emptyList()
-                }
-            }
-
-            val remoteEntities = awaitAll(anilistDeferred, tmdbDeferred).flatten()
+            val remoteEntities = anilistDeferred.await()
             if (remoteEntities.isNotEmpty()) {
                 mediaDao.upsertPreservingUserState(remoteEntities, userStateDao)
             }
@@ -185,7 +144,7 @@ class RemoteKaguraRepositoryImpl @Inject constructor(
     override fun getPagedMedia(type: MediaType): Flow<PagingData<MediaItem>> {
         return Pager(
             config = PagingConfig(pageSize = 20, enablePlaceholders = false),
-            remoteMediator = MediaRemoteMediator(type, db, aniListApi, tmdbApi),
+            remoteMediator = MediaRemoteMediator(type, db, aniListApi),
             pagingSourceFactory = { mediaDao.pagingSourceByType(type.name) }
         ).flow.map { pagingData -> pagingData.map { it.toDomain() } }
     }
@@ -240,7 +199,7 @@ class RemoteKaguraRepositoryImpl @Inject constructor(
 
     override suspend fun syncRemoteData() {
         seedIfEmpty()
-        if (mediaDao.count() < 120) {
+        if (mediaDao.count() < 80) {
             CoroutineScope(Dispatchers.IO).launch {
                 try {
                     fetchCatalogFromRemote()
@@ -256,53 +215,6 @@ class RemoteKaguraRepositoryImpl @Inject constructor(
         val entities = mutableListOf<MediaEntity>()
 
         coroutineScope {
-            if (mediaType == null || mediaType == MediaType.MOVIE) {
-                launch {
-                    try {
-                        for (p in 1..2) {
-                            val popular = tmdbApi.getPopularMovies(page = p)
-                            val topRated = tmdbApi.getTopRatedMovies(page = p)
-                            val trending = tmdbApi.getTrendingMovies(page = p)
-                            val movies = (popular.results + topRated.results + trending.results).distinctBy { it.id }
-                            movies.forEach { movie ->
-                                val scoreVal = movie.voteAverage.toFloat()
-                                val pop = movie.popularity.toInt()
-                                val calculatedRarity = RarityCalculator.calculate(scoreVal, pop)
-                                val posterUrl = if (movie.posterPath != null) "https://image.tmdb.org/t/p/w500${movie.posterPath}" else ""
-                                val genreName = mapTmdbGenreIdToName(movie.genreIds.firstOrNull())
-                                val allGenreNames = movie.genreIds.map { mapTmdbGenreIdToName(it) }.distinct().joinToString(", ")
-                                entities.add(
-                                    MediaEntity(
-                                        id = 200000 + movie.id,
-                                        title = movie.title,
-                                        japaneseTitle = movie.originalTitle ?: "",
-                                        type = "MOVIE",
-                                        synopsis = movie.overview?.ifBlank { "Sem sinopse." } ?: "Sem sinopse.",
-                                        coverUrl = posterUrl,
-                                        rarity = calculatedRarity.name,
-                                        status = "NONE",
-                                        userRating = null,
-                                        score = scoreVal,
-                                        vibe = genreName,
-                                        tears = if (scoreVal >= 8.0f) 5 else 3,
-                                        units = 1,
-                                        year = movie.releaseDate?.take(4)?.toIntOrNull() ?: 2024,
-                                        accent = 0xFFFF7979,
-                                        genre = genreName,
-                                        genres = if (allGenreNames.isBlank()) genreName else allGenreNames,
-                                        externalId = movie.id.toString(),
-                                        source = "tmdb",
-                                        popularity = pop
-                                    )
-                                )
-                            }
-                        }
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
-                }
-            }
-
             if (mediaType == null || mediaType == MediaType.ANIME) {
                 launch {
                     try {
@@ -480,29 +392,5 @@ class RemoteKaguraRepositoryImpl @Inject constructor(
 
         val top = genreScores.entries.sortedByDescending { it.value }.map { it.key }.take(5)
         if (top.isEmpty()) listOf("Ação", "Romance", "Aventura", "Comédia", "Drama") else top
-    }
-
-    private fun mapTmdbGenreIdToName(id: Int?): String {
-        return when (id) {
-            28 -> "Ação"
-            12 -> "Aventura"
-            16 -> "Animação"
-            35 -> "Comédia"
-            80 -> "Crime"
-            99 -> "Documentário"
-            18 -> "Drama"
-            10751 -> "Família"
-            14 -> "Fantasia"
-            36 -> "História"
-            27 -> "Terror"
-            10402 -> "Música"
-            9648 -> "Mistério"
-            10749 -> "Romance"
-            878 -> "Ficção Científica"
-            53 -> "Thriller"
-            10752 -> "Guerra"
-            37 -> "Faroeste"
-            else -> "Ação"
-        }
     }
 }
