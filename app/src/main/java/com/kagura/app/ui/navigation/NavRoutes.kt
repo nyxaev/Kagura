@@ -1,6 +1,7 @@
 package com.kagura.app.ui.navigation
 
 object NavRoutes {
+    const val WELCOME = "welcome"
     const val GACHA = "gacha"
     const val DEX = "dex"
     const val SEARCH = "search"

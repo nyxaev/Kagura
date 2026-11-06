@@ -10,7 +10,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -29,6 +28,7 @@ import com.kagura.app.ui.screens.profile.ProfileScreen
 import com.kagura.app.ui.screens.profile.ProfileViewModel
 import com.kagura.app.ui.screens.search.SearchScreen
 import com.kagura.app.ui.screens.search.SearchViewModel
+import com.kagura.app.ui.screens.welcome.WelcomeScreen
 import androidx.compose.foundation.border
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.clip
@@ -64,7 +64,7 @@ fun KaguraRoot() {
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
-            if (route != NavRoutes.DETAIL) {
+            if (route != NavRoutes.DETAIL && route != NavRoutes.WELCOME) {
                 NavigationBar(
                     containerColor = KaguraGlassSurface,
                     modifier = Modifier
@@ -109,7 +109,14 @@ fun KaguraRoot() {
 @Composable
 fun KaguraNavGraph(nav: NavHostController, modifier: Modifier = Modifier) {
     val openDetail: (Int) -> Unit = { nav.navigate(NavRoutes.detail(it)) }
-    NavHost(nav, startDestination = NavRoutes.GACHA, modifier = modifier) {
+    NavHost(nav, startDestination = NavRoutes.WELCOME, modifier = modifier) {
+        composable(NavRoutes.WELCOME) {
+            WelcomeScreen(onStart = {
+                nav.navigate(NavRoutes.GACHA) {
+                    popUpTo(NavRoutes.WELCOME) { inclusive = true }
+                }
+            })
+        }
         composable(NavRoutes.GACHA) {
             val vm: GachaViewModel = hiltViewModel()
             GachaScreen(vm, openDetail)
