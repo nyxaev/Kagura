@@ -1,8 +1,8 @@
 <div align="center">
 
-<h1>Kagura</h1>
+<img src="docs/kagura-banner.svg" width="100%" alt="Kagura 神楽">
 
-<p><sub>神楽 &nbsp;·&nbsp; <i>sua jornada pelo universo dos animes e mangás</i></sub></p>
+<br><br>
 
 <p align="center">
   <img src="https://img.shields.io/badge/Status-Em%20desenvolvimento-FF8FB1?style=for-the-badge&labelColor=120B2A">
@@ -14,17 +14,9 @@
   <i>Um sorteador de animes e mangás guiado pelo seu clima:<br>tranquilo, intenso ou super intenso.</i>
 </p>
 
-<p align="center">
-  <img src="docs/screenshots/splash.png" width="190" alt="Tela inicial">
-  &nbsp;
-  <img src="docs/screenshots/sorteio.png" width="190" alt="Sorteio">
-  &nbsp;
-  <img src="docs/screenshots/dex.png" width="190" alt="Dex">
-</p>
-
 </div>
 
-<br>
+<p align="center"><img src="docs/kagura-divider.svg" width="520" alt=""></p>
 
 ## Sobre
 
@@ -32,7 +24,7 @@ Kagura (神楽, a dança sagrada japonesa) é um app Android que ajuda você a d
 
 Projeto de curso, feito com foco em arquitetura limpa, interface própria e boas práticas do Android moderno.
 
-<br>
+<p align="center"><img src="docs/kagura-divider.svg" width="520" alt=""></p>
 
 ## Telas
 
@@ -55,7 +47,7 @@ Projeto de curso, feito com foco em arquitetura limpa, interface própria e boas
 
 </div>
 
-<br>
+<p align="center"><img src="docs/kagura-divider.svg" width="520" alt=""></p>
 
 ## Funcionalidades
 
@@ -69,7 +61,7 @@ Projeto de curso, feito com foco em arquitetura limpa, interface própria e boas
 - **Perfil:** total de títulos, concluídos, progresso geral, episódios e capítulos salvos e lendários coletados.
 - **Detalhes:** capa, título original, sinopse, nota, ano, episódios ou capítulos, status e notas pessoais.
 
-<br>
+<p align="center"><img src="docs/kagura-divider.svg" width="520" alt=""></p>
 
 ## Arquitetura
 
@@ -83,9 +75,134 @@ graph TD
     F -->|RemoteMediator + Paging 3| E
 ```
 
-Clean Architecture com MVVM, injeção de dependências com Hilt, Room com FTS e cache, Retrofit com Kotlinx Serialization, Paging 3 com RemoteMediator, e rede em segundo plano (`Dispatchers.IO`) para evitar ANR.
+| Camada | Responsabilidade |
+|:--|:--|
+| `ui/` | Telas em Compose, componentes visuais, navegação e tema |
+| `domain/` | Modelos e casos de uso (sorteio, filtros da Dex, cálculo de raridade) |
+| `data/` | Room, API do AniList, paginação e repositórios |
+| `di/` | Módulos do Hilt (banco, rede, DataStore e repositórios) |
 
-<br>
+Rede em segundo plano com `Dispatchers.IO` para evitar ANR.
+
+<p align="center"><img src="docs/kagura-divider.svg" width="520" alt=""></p>
+
+## Estrutura do projeto
+
+<details>
+<summary>Ver árvore de pastas</summary>
+
+```
+Kagura/
+├── .gitignore
+├── README.md
+├── build.gradle.kts
+├── settings.gradle.kts
+├── gradle.properties
+├── local.properties.example
+├── gradle/
+│   └── libs.versions.toml
+└── app/
+    ├── build.gradle.kts
+    └── src/
+        └── main/
+            ├── AndroidManifest.xml
+            ├── java/
+            │   └── com/
+            │       └── kagura/
+            │           └── app/
+            │               ├── KaguraApp.kt
+            │               ├── MainActivity.kt
+            │               ├── data/
+            │               │   ├── local/
+            │               │   │   ├── AppDatabase.kt
+            │               │   │   ├── GachaHistoryDao.kt
+            │               │   │   ├── GachaHistoryEntity.kt
+            │               │   │   ├── MediaDao.kt
+            │               │   │   ├── MediaEntity.kt
+            │               │   │   ├── MediaFtsEntity.kt
+            │               │   │   ├── RemoteKeysDao.kt
+            │               │   │   ├── RemoteKeysEntity.kt
+            │               │   │   ├── SeedData.kt
+            │               │   │   ├── UserStateDao.kt
+            │               │   │   └── UserStateEntity.kt
+            │               │   ├── model/
+            │               │   │   ├── Mappers.kt
+            │               │   │   └── MediaDto.kt
+            │               │   ├── paging/
+            │               │   │   └── MediaRemoteMediator.kt
+            │               │   ├── remote/
+            │               │   │   └── anilist/
+            │               │   │       ├── AniListApi.kt
+            │               │   │       └── AniListModels.kt
+            │               │   └── repository/
+            │               │       ├── FakeKaguraRepositoryImpl.kt
+            │               │       ├── KaguraRepository.kt
+            │               │       ├── RemoteKaguraRepositoryImpl.kt
+            │               │       └── UserPreferencesRepository.kt
+            │               ├── di/
+            │               │   ├── DataStoreModule.kt
+            │               │   ├── DatabaseModule.kt
+            │               │   ├── NetworkModule.kt
+            │               │   └── RepositoryModule.kt
+            │               ├── domain/
+            │               │   ├── model/
+            │               │   │   └── MediaItem.kt
+            │               │   └── usecase/
+            │               │       ├── FilterDexUseCase.kt
+            │               │       ├── GetRandomGachaItemUseCase.kt
+            │               │       └── RarityCalculator.kt
+            │               └── ui/
+            │                   ├── components/
+            │                   │   ├── CardEffects.kt
+            │                   │   ├── CoverImage.kt
+            │                   │   ├── GachaCapsuleCard.kt
+            │                   │   ├── GlassComponents.kt
+            │                   │   ├── Labels.kt
+            │                   │   ├── RareBorder.kt
+            │                   │   ├── ShimmerEffect.kt
+            │                   │   └── TearMeterBar.kt
+            │                   ├── navigation/
+            │                   │   ├── KaguraNavGraph.kt
+            │                   │   └── NavRoutes.kt
+            │                   ├── screens/
+            │                   │   ├── detail/
+            │                   │   │   ├── DetailScreen.kt
+            │                   │   │   └── DetailViewModel.kt
+            │                   │   ├── dex/
+            │                   │   │   ├── DexScreen.kt
+            │                   │   │   └── DexViewModel.kt
+            │                   │   ├── gacha/
+            │                   │   │   ├── GachaScreen.kt
+            │                   │   │   └── GachaViewModel.kt
+            │                   │   ├── profile/
+            │                   │   │   ├── ProfileScreen.kt
+            │                   │   │   └── ProfileViewModel.kt
+            │                   │   ├── search/
+            │                   │   │   ├── SearchScreen.kt
+            │                   │   │   └── SearchViewModel.kt
+            │                   │   └── welcome/
+            │                   │       └── WelcomeScreen.kt
+            │                   └── theme/
+            │                       ├── Color.kt
+            │                       ├── Theme.kt
+            │                       └── Type.kt
+            └── res/
+                ├── drawable/
+                │   ├── ic_launcher.xml
+                │   ├── ic_launcher_background.xml
+                │   ├── ic_launcher_foreground.xml
+                │   └── ic_launcher_monochrome.xml
+                ├── font/
+                │   └── kagura.ttf
+                └── values/
+                    ├── font_certs.xml
+                    ├── strings.xml
+                    └── themes.xml
+```
+
+</details>
+
+<p align="center"><img src="docs/kagura-divider.svg" width="520" alt=""></p>
 
 ## Tecnologias
 
@@ -103,7 +220,7 @@ Clean Architecture com MVVM, injeção de dependências com Hilt, Room com FTS e
   <sub>Kotlin · Jetpack Compose · Material 3 · Hilt · Room · Retrofit · Paging 3 · Coil · DataStore · WorkManager</sub>
 </p>
 
-<br>
+<p align="center"><img src="docs/kagura-divider.svg" width="520" alt=""></p>
 
 ## Como rodar
 
@@ -119,7 +236,7 @@ git clone https://github.com/nyxaev/Kagura.git
 
 O app usa a API pública do AniList, que não exige chave de acesso.
 
-<br>
+<p align="center"><img src="docs/kagura-divider.svg" width="520" alt=""></p>
 
 <div align="center">
 

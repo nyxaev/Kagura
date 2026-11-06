@@ -1,0 +1,112 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 380" width="1200" height="380">
+  <title>Kagura</title>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1B1236"/>
+      <stop offset="1" stop-color="#07041A"/>
+    </linearGradient>
+    <linearGradient id="moon" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFD6A5"/>
+      <stop offset="0.55" stop-color="#FF8FB1"/>
+      <stop offset="1" stop-color="#B86BFF"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#FF8FB1" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#FF8FB1" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="ribbon" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#fff" stop-opacity="0"/>
+      <stop offset="0.5" stop-color="#fff" stop-opacity="0.9"/>
+      <stop offset="1" stop-color="#fff" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="pt" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFD6E4"/>
+      <stop offset="1" stop-color="#FF7AA8"/>
+    </linearGradient>
+    <path id="p" d="M0 0 C 6 -12 22 -12 28 0 C 22 12 6 12 0 0 Z"/>
+    <clipPath id="c"><rect width="1200" height="380" rx="28"/></clipPath>
+  </defs>
+
+  <g clip-path="url(#c)">
+    <rect width="1200" height="380" fill="url(#bg)"/>
+
+    <!-- brilho pulsando -->
+    <circle cx="600" cy="150" r="210" fill="url(#glow)">
+      <animate attributeName="opacity" values="0.65;1;0.65" dur="5s" repeatCount="indefinite"/>
+    </circle>
+
+    <!-- ondas que se expandem -->
+    <g fill="none" stroke="#fff" stroke-width="2">
+      <circle cx="600" cy="150" r="80">
+        <animate attributeName="r" values="80;270" dur="6s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="0.35;0" dur="6s" repeatCount="indefinite"/>
+      </circle>
+      <circle cx="600" cy="150" r="80">
+        <animate attributeName="r" values="80;270" dur="6s" begin="2s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="0.35;0" dur="6s" begin="2s" repeatCount="indefinite"/>
+      </circle>
+      <circle cx="600" cy="150" r="80">
+        <animate attributeName="r" values="80;270" dur="6s" begin="4s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="0.35;0" dur="6s" begin="4s" repeatCount="indefinite"/>
+      </circle>
+    </g>
+
+    <!-- estrelas piscando -->
+    <g fill="#fff">
+      <circle cx="120" cy="60" r="2"><animate attributeName="opacity" values="0.2;0.9;0.2" dur="3s" repeatCount="indefinite"/></circle>
+      <circle cx="260" cy="130" r="1.5"><animate attributeName="opacity" values="0.8;0.2;0.8" dur="4s" repeatCount="indefinite"/></circle>
+      <circle cx="400" cy="50" r="2"><animate attributeName="opacity" values="0.3;1;0.3" dur="3.5s" repeatCount="indefinite"/></circle>
+      <circle cx="820" cy="70" r="2"><animate attributeName="opacity" values="0.9;0.2;0.9" dur="4.5s" repeatCount="indefinite"/></circle>
+      <circle cx="960" cy="140" r="1.5"><animate attributeName="opacity" values="0.2;0.9;0.2" dur="3.2s" repeatCount="indefinite"/></circle>
+      <circle cx="1090" cy="55" r="2"><animate attributeName="opacity" values="0.7;0.2;0.7" dur="5s" repeatCount="indefinite"/></circle>
+    </g>
+
+    <!-- lua -->
+    <circle cx="600" cy="150" r="70" fill="url(#moon)">
+      <animate attributeName="r" values="68;74;68" dur="5s" repeatCount="indefinite"/>
+    </circle>
+
+    <!-- fita -->
+    <path d="M430 190 C 510 120, 570 235, 650 150 S 740 118, 780 140"
+          fill="none" stroke="url(#ribbon)" stroke-width="5" stroke-linecap="round">
+      <animate attributeName="opacity" values="0.5;1;0.5" dur="4s" repeatCount="indefinite"/>
+    </path>
+
+    <!-- petalas caindo -->
+    <g>
+      <animateTransform attributeName="transform" type="translate" values="150,-30; 190,150; 140,290; 190,420" dur="10s" begin="0s" repeatCount="indefinite"/>
+      <g transform="scale(1)"><use href="#p" fill="url(#pt)"><animateTransform attributeName="transform" type="rotate" values="0;360" dur="7s" repeatCount="indefinite"/></use></g>
+    </g>
+    <g>
+      <animateTransform attributeName="transform" type="translate" values="330,-30; 290,160; 350,300; 300,420" dur="12s" begin="-4s" repeatCount="indefinite"/>
+      <g transform="scale(0.7)"><use href="#p" fill="url(#pt)"><animateTransform attributeName="transform" type="rotate" values="360;0" dur="8s" repeatCount="indefinite"/></use></g>
+    </g>
+    <g>
+      <animateTransform attributeName="transform" type="translate" values="470,-30; 510,150; 460,290; 500,420" dur="9s" begin="-6s" repeatCount="indefinite"/>
+      <g transform="scale(0.8)"><use href="#p" fill="url(#pt)"><animateTransform attributeName="transform" type="rotate" values="0;360" dur="6s" repeatCount="indefinite"/></use></g>
+    </g>
+    <g>
+      <animateTransform attributeName="transform" type="translate" values="740,-30; 700,160; 760,300; 720,420" dur="11s" begin="-2s" repeatCount="indefinite"/>
+      <g transform="scale(0.9)"><use href="#p" fill="url(#pt)"><animateTransform attributeName="transform" type="rotate" values="0;360" dur="9s" repeatCount="indefinite"/></use></g>
+    </g>
+    <g>
+      <animateTransform attributeName="transform" type="translate" values="900,-30; 940,150; 890,290; 940,420" dur="13s" begin="-8s" repeatCount="indefinite"/>
+      <g transform="scale(0.7)"><use href="#p" fill="url(#pt)"><animateTransform attributeName="transform" type="rotate" values="360;0" dur="7s" repeatCount="indefinite"/></use></g>
+    </g>
+    <g>
+      <animateTransform attributeName="transform" type="translate" values="1040,-30; 1000,160; 1060,300; 1010,420" dur="10s" begin="-5s" repeatCount="indefinite"/>
+      <g transform="scale(1)"><use href="#p" fill="url(#pt)"><animateTransform attributeName="transform" type="rotate" values="0;360" dur="8s" repeatCount="indefinite"/></use></g>
+    </g>
+
+    <!-- titulo -->
+    <g>
+      <animate attributeName="opacity" values="0;1" dur="1.6s" fill="freeze"/>
+      <text x="611" y="290" text-anchor="middle"
+            font-family="Poppins,'Segoe UI',Helvetica,Arial,sans-serif"
+            font-size="62" font-weight="300" letter-spacing="22" fill="#FFF4F8">KAGURA</text>
+      <text x="600" y="338" text-anchor="middle"
+            font-family="'Noto Sans JP','Hiragino Sans','Yu Gothic','Segoe UI',sans-serif"
+            font-size="22" letter-spacing="6" fill="#FFD6E4" fill-opacity="0.85">神楽  ·  sorteie seu próximo anime</text>
+    </g>
+  </g>
+</svg>
